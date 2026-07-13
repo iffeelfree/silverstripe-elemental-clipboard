@@ -13,9 +13,5 @@
             "Ifeelfree\\ElementalClipboard\\": "src/"
         }
     },
-    "extra": {
-        "expose": [
-            "client/dist"
-        ]
-    }
+    "extra": {}
 }

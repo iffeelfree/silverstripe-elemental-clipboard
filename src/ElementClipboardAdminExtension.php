@@ -13,7 +13,8 @@ class ElementClipboardAdminExtension extends Extension
 {
     public function init(): void
     {
-        Requirements::javascript('ifeelfree/silverstripe-elemental-clipboard:client/dist/elementClipboard.js');
-        Requirements::css('ifeelfree/silverstripe-elemental-clipboard:client/dist/elementClipboard.css');
+        $dist = dirname(__DIR__) . '/client/dist/';
+        Requirements::customScript(file_get_contents($dist . 'elementClipboard.js'), 'element-clipboard-js');
+        Requirements::customCSS(file_get_contents($dist . 'elementClipboard.css'), 'element-clipboard-css');
     }
 }

@@ -145,13 +145,22 @@
     const areaID = areaEl.dataset.schema && JSON.parse(areaEl.dataset.schema)['elemental-area-id'];
     if (!areaID) return;
 
-    const parcel = clip.read();
+    const parcel    = clip.read();
+    const parcelKey = parcel?.exported_at ?? null;
 
-    // 1. Combined clipboard strip — sits as a sibling BEFORE the React root.
-    //    Remove any stale strip first.
-    areaEl.previousElementSibling?.dataset.ecBar && areaEl.previousElementSibling.remove();
-    if (parcel) {
-      areaEl.insertAdjacentElement('beforebegin', buildClipboardStrip(parcel, areaID));
+    // 1. Combined clipboard strip — only re-render when the parcel actually changes.
+    //    Use exported_at as a cache key so the 600ms poll doesn't thrash the DOM.
+    const existingBar = areaEl.previousElementSibling?.dataset.ecBar
+      ? areaEl.previousElementSibling
+      : null;
+
+    if (existingBar?.dataset.ecBarKey !== parcelKey) {
+      existingBar?.remove();
+      if (parcel) {
+        const strip = buildClipboardStrip(parcel, areaID);
+        strip.dataset.ecBarKey = parcelKey;
+        areaEl.insertAdjacentElement('beforebegin', strip);
+      }
     }
 
     // 2. Copy buttons — find every action menu wrapper inside this area
