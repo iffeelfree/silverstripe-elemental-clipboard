@@ -12,8 +12,9 @@
   'use strict';
 
   const STORAGE_KEY  = 'ss_element_clipboard';
-  const EXPORT_URL   = '/admin/elementclipboard/export';
-  const IMPORT_URL   = '/admin/elementclipboard/import';
+  const EXPORT_URL    = '/admin/elementclipboard/export';
+  const EXPORTALL_URL = '/admin/elementclipboard/exportall';
+  const IMPORT_URL    = '/admin/elementclipboard/import';
 
   // ---------------------------------------------------------------------------
   // localStorage — read/write/clear the clipboard parcel
@@ -69,6 +70,24 @@
     }
   }
 
+  async function copyAllElements(areaID) {
+    try {
+      const url    = `${EXPORTALL_URL}?areaID=${areaID}&SecurityID=${encodeURIComponent(getSecurityID())}`;
+      const res    = await fetch(url, { credentials: 'same-origin' });
+      const parcel = await res.json();
+
+      if (parcel.error) throw new Error(parcel.error);
+
+      clip.write(parcel);
+      toast(`Copied: ${parcel.source_element_title}`);
+      refreshAllAreas();
+
+    } catch (err) {
+      console.error('[ElementClipboard] Copy all failed:', err);
+      toast(`Copy all failed: ${err.message}`, 'error');
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // PASTE — POST fixture parcel to server, append to target area, reload
   // ---------------------------------------------------------------------------
@@ -114,26 +133,27 @@
   function injectCopyBtn(actionMenuEl) {
     if (actionMenuEl.querySelector('[data-ec-copy]')) return;
 
-    // Reactstrap renders DropdownMenu as a <div role="menu">, not a <ul>
     const dropdown = actionMenuEl.querySelector('.action-menu__dropdown');
     if (!dropdown) return;
 
-    // ElementActions never receives an `id` prop, so the wrapper div always gets
-    // id="element-editor-actions-undefined". Derive the element ID instead from
-    // the block icon: <i id="element-icon-{N}"> inside the same block wrapper.
-    const blockEl = actionMenuEl.closest('.element-editor__element');
-    const iconEl  = blockEl?.querySelector('[id^="element-icon-"]');
+    // Derive element ID from the block icon: <i id="element-icon-{N}">
+    const blockEl   = actionMenuEl.closest('.element-editor__element');
+    const iconEl    = blockEl?.querySelector('[id^="element-icon-"]');
     const elementID = iconEl?.id.replace('element-icon-', '');
     if (!elementID) return;
 
-    // Match the existing pattern: bare <div class="dropdown-divider"> then bare <button>
+    // Derive area ID from the closest elemental area container
+    const areaEl = actionMenuEl.closest('.element-editor__container');
+    const areaID = areaEl?.dataset.schema && JSON.parse(areaEl.dataset.schema)['elemental-area-id'];
+
     const divider = document.createElement('div');
     divider.className = 'dropdown-divider';
-
-    console.log('[ElementClipboard] injecting copy btn for element', elementID);
-
     dropdown.appendChild(divider);
     dropdown.appendChild(buildCopyButton(elementID));
+
+    if (areaID) {
+      dropdown.appendChild(buildCopyAllButton(areaID));
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -211,6 +231,23 @@
       Copy to clipboard
     `;
     btn.addEventListener('click', () => copyElement(elementID));
+    return btn;
+  }
+
+  function buildCopyAllButton(areaID) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ec-dropdown-item dropdown-item';
+    btn.dataset.ecCopyAll = areaID;
+    btn.innerHTML = `
+      <svg class="ec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/>
+        <path d="M4 15h2M4 11h2M4 7h2"/>
+      </svg>
+      Copy all to clipboard
+    `;
+    btn.addEventListener('click', () => copyAllElements(areaID));
     return btn;
   }
 

@@ -45,12 +45,14 @@ class ElementClipboardController extends Controller
 
     private static array $url_handlers = [
         'GET export'     => 'export',
+        'GET exportall'  => 'exportall',
         'GET exportyaml' => 'exportyaml',
         'POST import'    => 'import',
     ];
 
     private static array $allowed_actions = [
         'export',
+        'exportall',
         'exportyaml',
         'import',
     ];
@@ -81,6 +83,46 @@ class ElementClipboardController extends Controller
             'source_page_title'    => $page?->Title ?? 'Unknown page',
             'source_element_title' => $element->Title,
             'fixture'              => $this->buildFixture($element),
+            'many_many'            => $manyMany ?: null,
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // EXPORT ALL — whole area → single JSON parcel for localStorage
+    //
+    // Same fixture format as a single-element export — the fixture key just
+    // contains multiple records so the existing import path handles it as-is.
+    // -------------------------------------------------------------------------
+
+    public function exportall(HTTPRequest $request): HTTPResponse
+    {
+        if (!SecurityToken::inst()->checkRequest($request)) {
+            return $this->jsonError(400, 'Invalid security token');
+        }
+
+        $area = ElementalArea::get_by_id((int) $request->getVar('areaID'));
+
+        if (!$area || !$area->canView()) {
+            return $this->jsonError(404, 'Area not found');
+        }
+
+        $page     = $area->getOwnerPage();
+        $fixture  = [];
+        $manyMany = [];
+        $count    = 0;
+
+        foreach ($area->Elements()->sort('Sort') as $element) {
+            $fixture  = array_merge_recursive($fixture, $this->buildFixture($element));
+            $manyMany = array_merge($manyMany, $this->buildManyMany($element));
+            $count++;
+        }
+
+        return $this->jsonResponse([
+            'ss_clipboard_version' => 1,
+            'exported_at'          => date('c'),
+            'source_page_title'    => $page?->Title ?? 'Unknown page',
+            'source_element_title' => "Layout: {$page?->Title} ({$count} blocks)",
+            'fixture'              => $fixture,
             'many_many'            => $manyMany ?: null,
         ]);
     }
