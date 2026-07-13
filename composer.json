@@ -1,0 +1,21 @@
+{
+    "name": "ifeelfree/silverstripe-elemental-clipboard",
+    "description": "Copy and paste elemental blocks between CMS pages via a browser clipboard",
+    "type": "silverstripe-vendormodule",
+    "license": "BSD-3-Clause",
+    "keywords": ["silverstripe", "elemental", "clipboard", "copy", "paste", "blocks"],
+    "require": {
+        "silverstripe/framework": "^5 || ^6",
+        "dnadesign/silverstripe-elemental": "^5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ifeelfree\\ElementalClipboard\\": "src/"
+        }
+    },
+    "extra": {
+        "expose": [
+            "client/dist"
+        ]
+    }
+}

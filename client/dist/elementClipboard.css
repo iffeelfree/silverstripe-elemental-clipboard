@@ -1,0 +1,100 @@
+/**
+ * elementClipboard.css
+ * Designed to feel native to the Silverstripe CMS admin.
+ */
+
+/* Combined clipboard strip — bar + paste + clear in one row */
+.ec-clipboard-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  background: #E1F5EE;
+  border-bottom: 1px solid #9FE1CB;
+  font-size: 12px;
+  color: #0F6E56;
+  line-height: 1.4;
+}
+.ec-clipboard-bar strong { font-weight: 600; }
+.ec-clipboard-bar em     { font-style: normal; opacity: 0.8; }
+.ec-bar-label            { flex: 1; }
+
+/* Paste button — inline inside the strip */
+.ec-clipboard-bar .ec-paste-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #fff;
+  border: 1px solid #1D9E75;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1D9E75;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+.ec-clipboard-bar .ec-paste-btn:hover  { background: #c8f0e2; }
+.ec-clipboard-bar .ec-paste-btn:active { background: #9FE1CB; }
+
+.ec-clear-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #0F6E56;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.ec-clear-btn:hover { color: #085041; }
+
+/* Copy item — injected into the ••• dropdown */
+.ec-dropdown-divider {
+  height: 1px;
+  background: #e5e5e5;
+  margin: 4px 0;
+  list-style: none;
+}
+.ec-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #1D9E75;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+.ec-dropdown-item:hover { background: #E1F5EE; }
+
+/* Shared SVG icon sizing */
+.ec-icon { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Toast notifications */
+.ec-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 99999;
+  padding: 10px 16px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: #fff;
+  background: #1D9E75;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  max-width: 360px;
+}
+.ec-toast--visible  { opacity: 1; transform: translateY(0); }
+.ec-toast--error    { background: #A32D2D; }
+.ec-toast--warning  { background: #BA7517; }

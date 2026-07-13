@@ -1,0 +1,20 @@
+---
+Name: elementclipboard
+---
+
+# Controller route
+SilverStripe\Control\Director:
+  rules:
+    'admin/elementclipboard//$Action': 'Ifeelfree\ElementalClipboard\ElementClipboardController'
+
+# Load JS + CSS into CMS admin
+SilverStripe\Admin\LeftAndMain:
+  extensions:
+    - Ifeelfree\ElementalClipboard\ElementClipboardAdminExtension
+
+# ── Opt-out specific relations from auto-discovery (optional) ─────────────────
+# Example: skip relations that shouldn't be cloned (link tracking, tags, etc.)
+#
+# DNADesign\Elemental\Models\ElementContent:
+#   clipboard_exclude_relations:
+#     - LinkTracking
