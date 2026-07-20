@@ -10,7 +10,9 @@ use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\FixtureFactory;
 use SilverStripe\Dev\YamlFixture;
+use SilverStripe\ORM\HasManyList;
 use SilverStripe\Security\SecurityToken;
+use SilverStripe\Versioned\Versioned;
 use Symfony\Component\Yaml\Yaml;
 
 /**
@@ -189,7 +191,9 @@ class ElementClipboardController extends Controller
             return $this->jsonError(400, 'Missing areaID or fixture');
         }
 
-        $area = ElementalArea::get_by_id((int) $body['areaID']);
+        // Read from draft stage so unpublished pages/areas are editable
+        $area = Versioned::get_by_stage(ElementalArea::class, Versioned::DRAFT)
+            ->byID((int) $body['areaID']);
 
         if (!$area || !$area->canEdit()) {
             return $this->jsonError(403, 'Cannot edit this area');
@@ -223,10 +227,14 @@ class ElementClipboardController extends Controller
     //       Sort: 2
     //       HTML: "<h2>...</h2>"
     //
-    //   Dynamic\ElementalPromos\Model\PromoObject:
-    //     elementpromo-our-services-7-promos-1:
-    //       Title: "Design"
-    //       ParentID: =>Dynamic\ElementalPromos\Model\ElementPromo.elementpromo-our-services-7
+    //   Dynamic\Elements\Accordion\Model\AccordionPanel:
+    //     elementaccordion-faq-7-panels-1:
+    //       Title: "Shipping"
+    //       AccordionID: =>Dynamic\Elements\Accordion\Elements\ElementAccordion.elementaccordion-faq-7
+    //
+    // has_many children are recreated as new records on import. The child's
+    // reverse has_one FK (ParentID, AccordionID, …) is resolved via HasManyList
+    // — never assumed to be ParentID.
     // -------------------------------------------------------------------------
 
     protected function buildFixture(BaseElement $element): array
@@ -257,7 +265,7 @@ class ElementClipboardController extends Controller
                 continue;
             }
 
-            // Resolve 'ClassName.foreignKey' notation to just the class
+            // Resolve 'ClassName.RelationName' notation to just the class
             $relClass = strpos($relClass, '.') !== false
                 ? explode('.', $relClass)[0]
                 : $relClass;
@@ -266,15 +274,32 @@ class ElementClipboardController extends Controller
                 continue;
             }
 
-            $childFields = $this->getFieldsForClass($relClass, ['ParentID']);
+            $list = $element->$relationName();
+            if (!$list instanceof HasManyList) {
+                continue;
+            }
+
+            // AccordionID, ParentID, etc. — whatever the child's has_one is called
+            $foreignKey  = $list->getForeignKey();
+            $childFields = $this->getFieldsForClass($relClass, [$foreignKey]);
+            $dbFields    = $relClass::config()->get('db') ?? [];
             $i           = 1;
 
-            foreach ($element->$relationName()->sort('Sort') as $child) {
+            // Preserve GridFieldOrderableRows order when the child has Sort
+            $children = isset($dbFields['Sort']) ? $list->sort('Sort') : $list;
+
+            foreach ($children as $child) {
                 $childKey    = "{$key}-" . strtolower($relationName) . "-{$i}";
-                $childRecord = ['ParentID' => "=>{$className}.{$key}"];
+                $childRecord = [$foreignKey => "=>{$className}.{$key}"];
 
                 foreach ($childFields as $field) {
                     $childRecord[$field] = $child->$field;
+                }
+
+                // Sort is excluded from getFieldsForClass (elements use offsetSort),
+                // but has_many children need their own order preserved.
+                if (isset($dbFields['Sort'])) {
+                    $childRecord['Sort'] = (int) $child->Sort;
                 }
 
                 $fixture[$relClass][$childKey] = $childRecord;
