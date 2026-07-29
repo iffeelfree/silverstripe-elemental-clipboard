@@ -227,8 +227,7 @@
       <svg class="ec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true">
         <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
         <rect x="9" y="3" width="6" height="4" rx="1"/>
-      </svg>
-      Copy to clipboard
+      </svg> Copy to clipboard
     `;
     btn.addEventListener('click', () => copyElement(elementID));
     return btn;
@@ -244,8 +243,7 @@
         <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
         <rect x="9" y="3" width="6" height="4" rx="1"/>
         <path d="M4 15h2M4 11h2M4 7h2"/>
-      </svg>
-      Copy all to clipboard
+      </svg> Copy all to clipboard
     `;
     btn.addEventListener('click', () => copyAllElements(areaID));
     return btn;
