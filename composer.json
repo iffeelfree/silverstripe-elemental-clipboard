@@ -6,7 +6,7 @@
     "keywords": ["silverstripe", "elemental", "clipboard", "copy", "paste", "blocks"],
     "require": {
         "silverstripe/framework": "^5 || ^6",
-        "dnadesign/silverstripe-elemental": "^5"
+        "dnadesign/silverstripe-elemental": "^5 || ^6"
     },
     "autoload": {
         "psr-4": {
