@@ -11,7 +11,7 @@ use SilverStripe\View\Requirements;
  */
 class ElementClipboardAdminExtension extends Extension
 {
-    public function init(): void
+    public function onAfterInit(): void
     {
         $dist = dirname(__DIR__) . '/client/dist/';
         Requirements::customScript(file_get_contents($dist . 'elementClipboard.js'), 'element-clipboard-js');
