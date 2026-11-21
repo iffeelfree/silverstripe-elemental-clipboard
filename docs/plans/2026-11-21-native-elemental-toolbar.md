@@ -107,8 +107,16 @@ Test blocks 1468 and 1469 were archived afterwards.
 - [x] Area clipboard bar through `ElementToolbar`. *(spike)*
 - [x] Clipboard store + hook. Delete the poll and the DOM scraping. *(spike)*
 - [x] Paste refreshes through `FORCE_RELOAD`. *(spike)*
-- [ ] Export and Copy all read the draft stage (bug 1 above).
-- [ ] Paste writes draft only and doesn't publish (bug 2 above).
+- [x] Export and Copy all read the draft stage (bug 1 above). *(`96da3fc`)*
+- [x] Paste writes draft only and doesn't publish (bug 2 above). *(`96da3fc`)*
+  - **Root cause:** the controller is a plain `Controller`, so it ran on LIVE. Versioned writes on LIVE go to both tables (`Versioned.php`, "If we're editing Live, then write to (table)_Live as well as (table)").
+  - **Fix:** each action is wrapped in `Versioned::withVersionedMode()` on DRAFT. The endpoints also now require `CMS_ACCESS`, and return a 403 JSON response otherwise.
+  - **Verified in Turipark:**
+    - A draft-only block copies with 200 (it returned 404 before).
+    - A pasted block shows the draft badge.
+    - Copy all includes draft-only blocks (3 of 3).
+    - An unauthenticated request gets 403.
+  - **1.x:** both bugs are also in 1.x, so backport this to the `1.x` branch if SS5 sites need it.
 - [ ] Add `kind` to the parcel (bug 3 above).
 - [ ] Send the token as an `X-SecurityID` header instead of a query string. `SecurityToken::checkRequest` already accepts the header.
 - [ ] Add ESLint (`@silverstripe/eslint-config`), plus a Jest test for the clipboard store.
