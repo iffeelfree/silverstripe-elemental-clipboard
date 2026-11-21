@@ -7,10 +7,12 @@ use DNADesign\Elemental\Models\ElementalArea;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
+use SilverStripe\Control\HTTPResponse_Exception;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\FixtureFactory;
 use SilverStripe\Dev\YamlFixture;
 use SilverStripe\ORM\HasManyList;
+use SilverStripe\Security\Permission;
 use SilverStripe\Security\SecurityToken;
 use SilverStripe\Versioned\Versioned;
 use Symfony\Component\Yaml\Yaml;
@@ -23,6 +25,10 @@ use Symfony\Component\Yaml\Yaml;
  *
  * The clipboard format is a populate-compatible fixture array stored in
  * browser localStorage — the same YAML format as populate_content.yml.
+ *
+ * Every action runs on the DRAFT stage, like the CMS itself: copies include
+ * unpublished blocks and unpublished edits, and pasted blocks are created as
+ * drafts that go through the normal publish flow. Requires CMS access.
  *
  * Routes (registered in _config/elementclipboard.yml):
  *   GET  /admin/elementclipboard/export?elementID=X&SecurityID=Y
@@ -58,6 +64,32 @@ class ElementClipboardController extends Controller
         'exportyaml',
         'import',
     ];
+
+    protected function init(): void
+    {
+        parent::init();
+
+        // These endpoints read draft content and write into elemental areas.
+        if (!Permission::check('CMS_ACCESS')) {
+            throw new HTTPResponse_Exception($this->jsonError(403, 'CMS access required'));
+        }
+    }
+
+    /**
+     * Run every action on the DRAFT stage.
+     *
+     * This is a plain Controller, so the site would otherwise run it on the
+     * LIVE stage: reads would skip draft-only blocks and unpublished edits,
+     * and Versioned writes on LIVE go to both the draft and _Live tables,
+     * publishing every pasted block immediately.
+     */
+    protected function handleAction($request, $action)
+    {
+        return Versioned::withVersionedMode(function () use ($request, $action) {
+            Versioned::set_stage(Versioned::DRAFT);
+            return parent::handleAction($request, $action);
+        });
+    }
 
     // -------------------------------------------------------------------------
     // EXPORT — single element → JSON parcel for localStorage
@@ -174,8 +206,9 @@ class ElementClipboardController extends Controller
     // IMPORT — fixture parcel → write to target ElementalArea
     //
     // Uses YamlFixture + FixtureFactory from silverstripe/framework core.
-    // No external dependencies. Handles => cross-references and Versioned
-    // publishing automatically — same engine SS uses for test fixtures.
+    // No external dependencies. Handles => cross-references — same engine SS
+    // uses for test fixtures. Records are written on the DRAFT stage (see
+    // init()), so pasted blocks are unpublished until the editor publishes.
     // -------------------------------------------------------------------------
 
     public function import(HTTPRequest $request): HTTPResponse
@@ -191,9 +224,7 @@ class ElementClipboardController extends Controller
             return $this->jsonError(400, 'Missing areaID or fixture');
         }
 
-        // Read from draft stage so unpublished pages/areas are editable
-        $area = Versioned::get_by_stage(ElementalArea::class, Versioned::DRAFT)
-            ->byID((int) $body['areaID']);
+        $area = ElementalArea::get_by_id((int) $body['areaID']);
 
         if (!$area || !$area->canEdit()) {
             return $this->jsonError(403, 'Cannot edit this area');
