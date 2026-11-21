@@ -1,5 +1,7 @@
 ---
 Name: elementclipboard
+After:
+  - '#elemental'
 ---
 
 # Controller route
@@ -7,10 +9,13 @@ SilverStripe\Control\Director:
   rules:
     'admin/elementclipboard//$Action': 'Ifeelfree\ElementalClipboard\ElementClipboardController'
 
-# Load JS + CSS into CMS admin
+# Load the React bundle + styles into the CMS, after elemental's own bundle.
+# The bundle registers Injector transforms on ElementActions / ElementToolbar.
 SilverStripe\Admin\LeftAndMain:
-  extensions:
-    - Ifeelfree\ElementalClipboard\ElementClipboardAdminExtension
+  extra_requirements_javascript:
+    - 'ifeelfree/silverstripe-elemental-clipboard:client/dist/js/bundle.js'
+  extra_requirements_css:
+    - 'ifeelfree/silverstripe-elemental-clipboard:client/dist/styles/bundle.css'
 
 # ── Opt-out specific relations from auto-discovery (optional) ─────────────────
 # Example: skip relations that shouldn't be cloned (link tracking, tags, etc.)

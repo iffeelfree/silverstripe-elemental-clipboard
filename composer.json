@@ -5,13 +5,18 @@
     "license": "BSD-3-Clause",
     "keywords": ["silverstripe", "elemental", "clipboard", "copy", "paste", "blocks"],
     "require": {
-        "silverstripe/framework": "^5 || ^6",
-        "dnadesign/silverstripe-elemental": "^5 || ^6"
+        "silverstripe/framework": "^6",
+        "silverstripe/admin": "^3",
+        "dnadesign/silverstripe-elemental": "^6"
     },
     "autoload": {
         "psr-4": {
             "Ifeelfree\\ElementalClipboard\\": "src/"
         }
     },
-    "extra": {}
+    "extra": {
+        "expose": [
+            "client/dist"
+        ]
+    }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "silverstripe-elemental-clipboard",
+  "description": "Copy and paste elemental blocks between CMS pages",
+  "private": true,
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "rm -rf client/dist/js client/dist/styles && NODE_ENV=production webpack --mode production --bail",
+    "dev": "NODE_ENV=development webpack",
+    "watch": "NODE_ENV=development webpack --watch"
+  },
+  "devDependencies": {
+    "@silverstripe/webpack-config": "^3",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^5.0.0"
+  },
+  "browserslist": [
+    "defaults"
+  ]
+}

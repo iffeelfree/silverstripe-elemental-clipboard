@@ -1,0 +1,172 @@
+// Element clipboard — CMS styles. Designed to feel native to the Silverstripe admin.
+
+$ec-green: #1d9e75;
+$ec-green-dark: #0f6e56;
+$ec-green-darker: #085041;
+$ec-green-tint: #e1f5ee;
+$ec-green-tint-strong: #c8f0e2;
+$ec-green-border: #9fe1cb;
+
+// Shared SVG icon sizing
+.ec-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+// ── Block header toolbar (icons before the ••• toggle) ─────────────────────
+.ec-block-actions {
+  display: flex;
+  align-items: center;
+}
+
+.ec-block-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 2px;
+}
+
+.ec-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  color: inherit;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+}
+
+// Reveal fully on block hover/focus, ACF-style
+.element-editor__element:hover .ec-toolbar-btn,
+.element-editor__element:focus-within .ec-toolbar-btn {
+  opacity: 0.85;
+}
+
+// ── ••• dropdown items ─────────────────────────────────────────────────────
+.dropdown-item.ec-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $ec-green;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    background: $ec-green-tint;
+    color: $ec-green-dark;
+  }
+}
+
+// ── Area clipboard strip ───────────────────────────────────────────────────
+.ec-clipboard-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 7px 14px;
+  background: $ec-green-tint;
+  border-bottom: 1px solid $ec-green-border;
+  font-size: 12px;
+  color: $ec-green-dark;
+  line-height: 1.4;
+
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: normal;
+    opacity: 0.8;
+  }
+
+  .ec-bar-label {
+    flex: 1;
+  }
+
+  .ec-paste-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 4px 12px;
+    background: #fff;
+    border: 1px solid $ec-green;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: $ec-green;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: $ec-green-tint-strong;
+    }
+
+    &:active {
+      background: $ec-green-border;
+    }
+  }
+
+  .ec-clear-btn {
+    flex-shrink: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    font-size: 12px;
+    color: $ec-green-dark;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: $ec-green-darker;
+    }
+  }
+}
+
+// ── Legacy toast ───────────────────────────────────────────────────────────
+// No longer used by this module (it uses the CMS's own notices), but
+// Turipark's save-layout-option.js still renders .ec-toast. Remove once that
+// script is migrated to an Injector transform.
+.ec-toast {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 99999;
+  max-width: 360px;
+  padding: 10px 16px;
+  border-radius: 5px;
+  font-size: 13px;
+  color: #fff;
+  background: $ec-green;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.ec-toast--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ec-toast--error {
+  background: #a32d2d;
+}
+
+.ec-toast--warning {
+  background: #ba7517;
+}
