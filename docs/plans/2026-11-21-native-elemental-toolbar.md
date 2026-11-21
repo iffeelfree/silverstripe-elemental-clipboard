@@ -68,18 +68,50 @@ Useful internals:
 
 ## Phases
 
-### Phase 0: Spike (about half a day, decides go / no-go)
-- [ ] Set up a webpack build in this module and get a "hello" dropdown item rendering through `Injector.transform('element-actions')` in Turipark local.
-- [ ] Confirm which imports resolve as externals (`lib/Backend`, `lib/Config`, `reactstrap`, `i18n`).
-- [ ] Confirm `controllerLink` is readable from `Config.getSection('DNADesign\\Elemental\\Controllers\\ElementalAreaController')`, or find another way to get it.
-- [ ] Confirm that `store.dispatch({ type: 'FORCE_RELOAD', payload: { elementEditorId: areaId } })` refreshes the list.
-- [ ] Prototype: wrap `ElementActions` to render one icon button before the ••• and check layout, drag handle behaviour and click propagation.
+### Phase 0: Spike — done 2026-11-21, result: GO
+- [x] Webpack build with `@silverstripe/webpack-config` 3.5 (npm works; no yarn needed). Output is about 10 KB of JS and 2 KB of CSS.
+- [x] Imports that resolve as admin externals: `lib/Injector`, `lib/Config`, `lib/Backend`, `react`, `reactstrap`, `react-redux`, `prop-types`, `i18n`. No elemental modules are exposed, as expected.
+- [x] `controllerLink` is readable from `Config.getSection('DNADesign\\Elemental\\Controllers\\ElementalAreaController')`. The toolbar's duplicate icon calls elemental's own `api/duplicate` through it.
+- [x] Dispatching `{ type: 'FORCE_RELOAD', payload: { elementEditorId: areaId } }` through react-redux's `useDispatch` re-fetches the area in place. Both paste and duplicate now refresh without a page reload.
+- [x] An icon toolbar before the ••• (wrapping `ElementActions`) lays out correctly, and clicks don't toggle the block or start a drag.
+
+#### Spike results (Turipark local, elemental 6.2.3)
+
+Spike commit: `6ccff4a` on `feature/native-toolbar`. It went further than planned and already covers most of phase 1.
+
+Checked in the CMS:
+- **Menu items:** "Copy to clipboard" and "Copy all to clipboard" render as native ••• items. Turipark's "Save as layout option" still positions itself between them, through the kept `data-ec-copy` attribute.
+- **Copy:** shows a CMS notice, and the clipboard strip appears straight away (no polling).
+- **Duplicate icon:** the new block appears through a list refresh, with no page reload.
+- **Paste:** the confirm dialog appears, the block is appended, and the list refreshes in place.
+- **Copy all and clear:** both work, and the strip appears and disappears reactively.
+- **Console:** no errors from the bundle. The debugbar "Maximum header size exceeded" errors were already there.
+
+**Bugs found that 1.x already has** (not caused by the spike; fix in phase 1):
+1. **Export reads the Live stage.** `ElementClipboardController` extends `Controller`, so it never switches to draft reading mode.
+   - Copying a draft-only block returns `404 Element not found` (block 1468).
+   - "Copy all" skips draft-only blocks, and copies the published version of a block instead of its draft edits.
+   - **Fix:** read from the draft stage in `export` and `exportall`, as `import` already does.
+2. **Paste publishes straight to Live.** The pasted block (1469) had no draft badge, so `YamlFixture`/`FixtureFactory` wrote it to Live. On a real site, a paste immediately shows on the public page.
+   - **Fix:** write the new records to the draft stage only, so they follow the normal publish flow.
+3. **Copy all writes the area summary into `source_element_title`** ("Layout: Works (2 blocks)"). This works, but it's semantically muddled. Add a `kind: 'element' | 'area'` field to the parcel.
+
+Test blocks 1468 and 1469 were archived afterwards.
+
+**Still open from the spike:**
+- Paste still uses `window.confirm`. Decide whether to keep it, since ACF has no confirm.
+- Turipark's `composer.json` and `composer.lock` point at `dev-feature/native-toolbar` (uncommitted there). Revert them, or keep them while phase 1–2 continue.
 
 ### Phase 1: Parity, no visible change
-- [ ] Native Copy / Copy all dropdown items.
-- [ ] Area clipboard bar through `ElementToolbar`.
-- [ ] Clipboard store + hook. Delete the poll and the DOM scraping.
-- [ ] Paste refreshes through `FORCE_RELOAD`.
+- [x] Native Copy / Copy all dropdown items. *(spike)*
+- [x] Area clipboard bar through `ElementToolbar`. *(spike)*
+- [x] Clipboard store + hook. Delete the poll and the DOM scraping. *(spike)*
+- [x] Paste refreshes through `FORCE_RELOAD`. *(spike)*
+- [ ] Export and Copy all read the draft stage (bug 1 above).
+- [ ] Paste writes draft only and doesn't publish (bug 2 above).
+- [ ] Add `kind` to the parcel (bug 3 above).
+- [ ] Send the token as an `X-SecurityID` header instead of a query string. `SecurityToken::checkRequest` already accepts the header.
+- [ ] Add ESLint (`@silverstripe/eslint-config`), plus a Jest test for the clipboard store.
 
 ### Phase 2: ACF-style block toolbar
 - [ ] Icon toolbar: copy, paste below, duplicate (native endpoint), plus tooltips and `aria-label`s.
