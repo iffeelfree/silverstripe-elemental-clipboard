@@ -39,16 +39,24 @@ export const importParcel = (areaID, parcel) =>
   });
 
 /**
- * Elemental's own duplicate endpoint, called exactly as DuplicateAction does.
+ * POST to one of elemental's own block endpoints (duplicate, delete,
+ * unpublish), called exactly as its menu actions do.
  */
-export const duplicateElement = (elementID) => {
+const elementalApi = (action, elementID) => {
   const { controllerLink } = Config.getSection(ELEMENTAL_CONFIG_KEY) || {};
   if (!controllerLink) {
     return Promise.reject(new Error('Elemental controller link not found in client config'));
   }
   return backend.post(
-    `${controllerLink.replace(/\/$/, '')}/api/duplicate`,
+    `${controllerLink.replace(/\/$/, '')}/api/${action}`,
     { id: elementID },
     { 'X-SecurityID': Config.get('SecurityID') }
   );
 };
+
+export const duplicateElement = (elementID) => elementalApi('duplicate', elementID);
+
+// "delete" is elemental's archive endpoint (unpublishes first if needed).
+export const archiveElement = (elementID) => elementalApi('delete', elementID);
+
+export const unpublishElement = (elementID) => elementalApi('unpublish', elementID);

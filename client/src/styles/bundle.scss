@@ -23,35 +23,131 @@ $ec-green-border: #9fe1cb;
 .ec-block-toolbar {
   display: flex;
   align-items: center;
-  gap: 2px;
-  margin-right: 2px;
+  gap: 0;
+  margin-right: 4px;
+}
+
+// Tight, ACF-style grouping: the admin gives every .btn a 5px right margin
+// and ~6px side padding, which spreads six icons out too far.
+.ec-block-toolbar .ec-toolbar-btn {
+  margin: 0;
+  padding: 3px 4px;
 }
 
 .ec-toolbar-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding-top: 3px;
-  padding-bottom: 3px;
   color: inherit;
-  opacity: 0.55;
-  transition: opacity 0.15s ease;
 
-  &:hover,
-  &:focus-visible {
+  // Dim the icon, not the button, so the tooltip stays fully opaque.
+  .ec-icon {
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover .ec-icon,
+  &:focus-visible .ec-icon {
     opacity: 1;
   }
 
   &:disabled {
-    opacity: 0.25;
     cursor: not-allowed;
+
+    .ec-icon {
+      opacity: 0.25;
+    }
   }
 }
 
 // Reveal fully on block hover/focus, ACF-style
-.element-editor__element:hover .ec-toolbar-btn,
-.element-editor__element:focus-within .ec-toolbar-btn {
+.element-editor__element:hover .ec-toolbar-btn:not(:disabled) .ec-icon,
+.element-editor__element:focus-within .ec-toolbar-btn:not(:disabled) .ec-icon {
   opacity: 0.85;
+}
+
+.element-editor__element .ec-toolbar-btn:not(:disabled):hover .ec-icon,
+.element-editor__element .ec-toolbar-btn:not(:disabled):focus-visible .ec-icon {
+  opacity: 1;
+}
+
+// ── Toolbar tooltips (ACF Extended style: dark bubble above the icon) ──────
+$ec-tooltip-bg: #2c3338;
+
+@mixin ec-tooltip($content) {
+  position: relative;
+
+  &::before,
+  &::after {
+    position: absolute;
+    left: 50%;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, 4px);
+    transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+  }
+
+  // Bubble
+  &::after {
+    content: $content;
+    bottom: calc(100% + 8px);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: $ec-tooltip-bg;
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  // Arrow
+  &::before {
+    content: '';
+    bottom: calc(100% + 2px);
+    border: 6px solid transparent;
+    border-bottom: 0;
+    border-top-color: $ec-tooltip-bg;
+  }
+
+  &:hover,
+  &:focus-visible {
+    &::before,
+    &::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, 0);
+    }
+  }
+}
+
+.ec-toolbar-btn[data-ec-tooltip] {
+  @include ec-tooltip(attr(data-ec-tooltip));
+}
+
+// Elemental's ••• toggle, labelled from its own (translated) aria-label.
+// Hidden while its menu is open so it doesn't sit over the dropdown.
+.ec-block-actions .element-editor-header__actions-toggle[aria-label] {
+  @include ec-tooltip(attr(aria-label));
+
+  &[aria-expanded='true'] {
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+}
+
+// Archive is destructive: tint it red on hover, like ACF's remove button.
+.ec-toolbar-btn--archive:not(:disabled):hover,
+.ec-toolbar-btn--archive:not(:disabled):focus-visible {
+  color: #a32d2d;
 }
 
 // ── ••• dropdown items ─────────────────────────────────────────────────────

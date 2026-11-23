@@ -1,7 +1,14 @@
 /* global window */
 import i18n from 'i18n';
 import { read, write } from './clipboard';
-import { exportElement, exportArea, importParcel, duplicateElement } from './api';
+import {
+  exportElement,
+  exportArea,
+  importParcel,
+  duplicateElement,
+  archiveElement,
+  unpublishElement,
+} from './api';
 
 /**
  * Elemental's redux action for "re-fetch this area's blocks"
@@ -66,4 +73,45 @@ export function duplicate(elementID, areaID, dispatch) {
   return duplicateElement(elementID)
     .then(() => dispatch(forceReload(areaID)))
     .catch(fail('Duplicate'));
+}
+
+/**
+ * Archive a block, with the same confirm prompts as elemental's ArchiveAction.
+ */
+export function archive(element, areaID, dispatch) {
+  const message = element.isPublished
+    ? i18n._t(
+      'ElementArchiveAction.CONFIRM_DELETE_AND_UNPUBLISH',
+      'Warning: This block will be unpublished before being sent to the archive. Are you sure you want to proceed?'
+    )
+    : i18n._t(
+      'ElementArchiveAction.CONFIRM_DELETE',
+      'Are you sure you want to send this block to the archive?'
+    );
+  // eslint-disable-next-line no-alert
+  if (!window.confirm(message)) {
+    return Promise.resolve();
+  }
+  return archiveElement(element.id)
+    .then(() => dispatch(forceReload(areaID)))
+    .catch(fail('Archive'));
+}
+
+/**
+ * Unpublish a block (no confirm, same as elemental's UnpublishAction).
+ */
+export function unpublish(element, typeTitle, areaID, dispatch) {
+  const title = element.title || i18n.inject(
+    i18n._t('ElementHeader.NOTITLE', 'Untitled {type} block'),
+    { type: typeTitle }
+  );
+  return unpublishElement(element.id)
+    .then(() => {
+      dispatch(forceReload(areaID));
+      notify(i18n.inject(
+        i18n._t('ElementUnpublishAction.SUCCESS_NOTIFICATION', 'Removed \'{title}\' from the published page'),
+        { title }
+      ));
+    })
+    .catch(fail('Unpublish'));
 }
